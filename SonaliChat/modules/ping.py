@@ -29,6 +29,6 @@ async def ping(client, message: Message):
     minutes, seconds = divmod(remainder, 60)
     await message.reply_photo(
         photo=random.choice(IMG),
-        caption=f"**ʜєʏ ʙᴧʙʏ !!**\n**[{BOT_NAME}](t.me/{BOT_USERNAME}) ɪꜱ ᴧʟɪᴠє 🥀 ᴧηᴅ ᴡσʀᴋɪηɢ ꜰɪηє ᴡɪᴛʜ**\n\n**➥ ᴘσηɢ :** `{ms}` ms\n**➥ ᴜᴘᴛɪϻє :** `{hours}`ʜ:`{minutes}`ᴍ:`{seconds}`s\n\n**✦ 𝐏σᴡєʀєᴅ вʏ » [ᴀʟᴘʜᴀ-ʙᴀʙʏ](t.me/ll_ALPHA_BABY_lll)**",
+        caption=f"**ʜєʏ ʙᴧʙʏ !!**\n**[{BOT_NAME}](t.me/{BOT_USERNAME}) ɪꜱ ᴧʟɪᴠє 🥀 ᴧηᴅ ᴡσʀᴋɪηɢ ꜰɪηє ᴡɪᴛʜ**\n\n**➥ ᴘσηɢ :** `{ms}` ms\n**➥ ᴜᴘᴛɪϻє :** `{hours}`ʜ:`{minutes}`ᴍ:`{seconds}`s\n\n**✦ 𝐏σᴡєʀєᴅ вʏ » [𝐄𝐕𝐀❣](https://t.me/evasupportt)**",
         reply_markup=InlineKeyboardMarkup(PNG_BTN),
     )
