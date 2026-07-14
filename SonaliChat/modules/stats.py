@@ -19,7 +19,7 @@ async def stats(client: app, message: Message):
             [
                 [
                     InlineKeyboardButton("ᴀᴅᴅ ᴍᴇ", url="https://t.me/SonaliChatbot?startgroup=s&admin=delete_messages+manage_video_chats+pin_messages+invite_users"),
-                    InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇs", url="https://t.me/PURVI_SUPPORT"),
+                    InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇs", url="https://t.me/evasupportt"),
                 ]
             ]
         )
