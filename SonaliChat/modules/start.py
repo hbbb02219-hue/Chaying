@@ -82,7 +82,7 @@ async def on_new_chat_members(client: Client, message: Message):
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("ᴧᴅᴅ ϻє ʙᴧʙʏ", url=f"https://t.me/{BOT_USERNAME}?startgroup=s&admin=delete_messages+manage_video_chats+pin_messages+invite_users"),
-                    InlineKeyboardButton("ᴊσɪη sᴜᴘᴘσʀᴛ", url="https://t.me/purvi_support")
+                    InlineKeyboardButton("ᴊσɪη sᴜᴘᴘσʀᴛ", url="https://t.me/evasupportt")
                 ]
             ])
         )
@@ -102,7 +102,7 @@ async def on_new_chat_members(client: Client, message: Message):
             photo=random.choice(IMG),
             caption=log_msg,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ɢʀᴏᴜᴘ ʟɪɴᴋ", url=invite_link if invite_link != "Not Available" else "https://t.me/purvi_support")]
+                [InlineKeyboardButton("ɢʀᴏᴜᴘ ʟɪɴᴋ", url=invite_link if invite_link != "Not Available" else "https://t.me/evasupportt")]
             ])
         )
         
@@ -128,7 +128,7 @@ async def on_left_chat_member(client: Client, message: Message):
             photo=random.choice(IMG),
             caption=left_msg,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("sᴇᴇ ɢʀᴏᴜᴘ", url=f"https://t.me/{message.chat.username}" if message.chat.username else "https://t.me/purvi_support")]
+                [InlineKeyboardButton("sᴇᴇ ɢʀᴏᴜᴘ", url=f"https://t.me/{message.chat.username}" if message.chat.username else "https://t.me/evasupportt")]
             ])
         )
 
@@ -143,7 +143,7 @@ async def help_command(client, message):
         reply_markup=InlineKeyboardMarkup([
             [
                 InlineKeyboardButton("ᴀᴅᴅ ᴍᴇ ʙᴀʙʏ", url=f"https://t.me/{client.me.username}?startgroup=s&admin=delete_messages+manage_video_chats+pin_messages+invite_users"),
-                InlineKeyboardButton("ᴊᴏɪɴ sᴜᴘᴘᴏʀᴛ", url="https://t.me/purvi_support")
+                InlineKeyboardButton("ᴊᴏɪɴ sᴜᴘᴘᴏʀᴛ", url="https://t.me/evasupportt")
             ]
         ])
     )
@@ -158,7 +158,7 @@ async def help_button(client, callback_query):
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton("ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ", callback_data="back"),
-            InlineKeyboardButton("ᴊᴏɪɴ sᴜᴘᴘᴏʀᴛ", url="https://t.me/purvi_support")
+            InlineKeyboardButton("ᴊᴏɪɴ sᴜᴘᴘᴏʀᴛ", url="https://t.me/evasupportt")
         ]
     ])
     await callback_query.answer()
