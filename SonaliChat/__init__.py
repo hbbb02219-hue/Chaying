@@ -42,9 +42,10 @@ class Bot(Client):
         LOGGER.info("Bot stopped.")
 
 app = Bot()
+AMBOT = app
 
 async def get_bot_details():
-    x = await app.get_me()  # Correct way to call get_me()
+    x = await app.get_me()
     global BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID
     BOT_NAME = x.first_name + (" " + x.last_name if x.last_name else "")
     BOT_USERNAME = x.username
