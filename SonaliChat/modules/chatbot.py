@@ -10,8 +10,8 @@ from SonaliChat import app as AMBOT
 from SonaliChat.modules.helpers import CHATBOT_ON
 
 @AMBOT.on_message(filters.command(["chatbot"]) & filters.group & ~filters.bot)
-@is_admins
 async def chaton_off(_, m: Message):
+    ...
     await m.reply_text(
         f"ᴄʜᴀᴛ: {m.chat.id}\n**ᴄʜᴏᴏsᴇ ᴀɴ ᴏᴩᴛɪᴏɴ ᴛᴏ ᴇɴᴀʙʟᴇ/ᴅɪsᴀʙʟᴇ ᴄʜᴀᴛʙᴏᴛ.**",
         reply_markup=InlineKeyboardMarkup(CHATBOT_ON),
