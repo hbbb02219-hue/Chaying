@@ -7,8 +7,7 @@ from pyrogram.types import InlineKeyboardMarkup, Message
 
 from config import MONGO_URL
 from SonaliChat import app as AMBOT
-from SonaliChat.modules.helpers import CHATBOT_ON, is_admins
-
+from SonaliChat.modules.helpers import CHATBOT_ON
 
 @AMBOT.on_message(filters.command(["chatbot"]) & filters.group & ~filters.bot)
 @is_admins
