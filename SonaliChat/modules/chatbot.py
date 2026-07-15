@@ -6,7 +6,7 @@ from pyrogram.enums import ChatAction
 from pyrogram.types import InlineKeyboardMarkup, Message
 
 from config import MONGO_URL
-from SonaliChat import AMBOT
+from SonaliChat import app as AMBOT
 from SonaliChat.modules.helpers import CHATBOT_ON, is_admins
 
 
