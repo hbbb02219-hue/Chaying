@@ -1,122 +1,294 @@
-"""
-SonaliChat - AI Chatbot Toggle Module
---------------------------------------
-Commands:
-    /chatbot            -> Shows current status (ON/OFF) in this chat
-    /chatbot enable     -> Turns ON AI auto-chat in this group/chat
-    /chatbot disable    -> Turns OFF AI auto-chat in this group/chat
+import random
 
-ASSUMPTIONS (badlo agar tumhara bot alag setup use karta hai):
-    - Framework   : Pyrogram
-    - Database    : MongoDB via Motor (motor.motor_asyncio)
-    - Mongo URI   : env var DATABASE_URL / MONGO_DB_URI / MONGODB_URI / DB_URI
-                    (jo bhi tumhare bot mein already set hai, wahi use ho jayega)
-    - DB name     : "SonaliChat"  <-- ye line neeche badal do agar tumhara db
-                    name different hai (check apne existing database file mein)
-    - Collection  : "chatbot_settings" -> ye BILKUL NAYA collection hai,
-                    tumhara purana data isse touch nahi hoga.
-
-Agar tumhare bot mein already ek shared mongo client hai (e.g.
-`SonaliChat/database/__init__.py` mein `mongodb = AsyncIOMotorClient(...)`),
-to neeche wala "Database setup" block hata ke ye line use karo:
-
-    from SonaliChat.database import mongodb as _mongo_client
-"""
-
-import os
+from pymongo import MongoClient
 from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.enums import ChatType, ChatMemberStatus
-from motor.motor_asyncio import AsyncIOMotorClient
+from pyrogram.enums import ChatAction
+from pyrogram.types import InlineKeyboardMarkup, Message
 
-# ---------------------------------------------------------------------------
-# Database setup
-# ---------------------------------------------------------------------------
-DB_URI = (
-    os.getenv("DATABASE_URL")
-    or os.getenv("MONGO_DB_URI")
-    or os.getenv("MONGODB_URI")
-    or os.getenv("DB_URI")
-)
-
-_mongo_client = AsyncIOMotorClient(DB_URI)
-_db = _mongo_client["SonaliChat"]              # <-- apna actual DB name yahan check karo
-chatbot_settings = _db["chatbot_settings"]      # naya collection, purana data safe
+from config import MONGO_URL
+from SonaliChat import AMBOT
+from SonaliChat.modules.helpers import CHATBOT_ON, is_admins
 
 
-async def is_chatbot_enabled(chat_id: int) -> bool:
-    doc = await chatbot_settings.find_one({"chat_id": chat_id})
-    return bool(doc and doc.get("enabled", False))
-
-
-async def set_chatbot_status(chat_id: int, enabled: bool):
-    await chatbot_settings.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"chat_id": chat_id, "enabled": enabled}},
-        upsert=True,
+@AMBOT.on_message(filters.command(["chatbot"]) & filters.group & ~filters.bot)
+@is_admins
+async def chaton_off(_, m: Message):
+    await m.reply_text(
+        f"ᴄʜᴀᴛ: {m.chat.id}\n**ᴄʜᴏᴏsᴇ ᴀɴ ᴏᴩᴛɪᴏɴ ᴛᴏ ᴇɴᴀʙʟᴇ/ᴅɪsᴀʙʟᴇ ᴄʜᴀᴛʙᴏᴛ.**",
+        reply_markup=InlineKeyboardMarkup(CHATBOT_ON),
     )
+    return
 
 
-# ---------------------------------------------------------------------------
-# Permission check: sirf admin (group mein) ya user khud (private mein)
-# ---------------------------------------------------------------------------
-async def can_toggle(client: Client, message: Message) -> bool:
-    if message.chat.type == ChatType.PRIVATE:
-        return True
-    member = await client.get_chat_member(message.chat.id, message.from_user.id)
-    return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
-
-
-# ---------------------------------------------------------------------------
-# Command: /chatbot [enable|disable]
-# ---------------------------------------------------------------------------
-@Client.on_message(filters.command("chatbot"))
-async def chatbot_toggle(client: Client, message: Message):
-    if not await can_toggle(client, message):
-        await message.reply_text("❌ Sirf group admins hi ye setting change kar sakte hain.")
-        return
-
-    if len(message.command) < 2:
-        status = await is_chatbot_enabled(message.chat.id)
-        await message.reply_text(
-            f"🤖 Chatbot abhi **{'ON ✅' if status else 'OFF ❌'}** hai is chat mein.\n\n"
-            "Use: `/chatbot enable` ya `/chatbot disable`"
-        )
-        return
-
-    arg = message.command[1].lower()
-    if arg == "enable":
-        await set_chatbot_status(message.chat.id, True)
-        await message.reply_text("✅ Chatbot **ON** kar diya gaya is chat ke liye.")
-    elif arg == "disable":
-        await set_chatbot_status(message.chat.id, False)
-        await message.reply_text("❌ Chatbot **OFF** kar diya gaya is chat ke liye.")
-    else:
-        await message.reply_text("Use: `/chatbot enable` ya `/chatbot disable`")
-
-
-# ---------------------------------------------------------------------------
-# Auto-reply handler: sirf tab chalega jab us chat mein chatbot enabled ho
-# ---------------------------------------------------------------------------
-@Client.on_message(
-    filters.text & ~filters.command(["chatbot"]) & ~filters.via_bot,
-    group=1,
+@AMBOT.on_message(
+    (filters.text | filters.sticker | filters.group) & ~filters.private & ~filters.bot,
 )
-async def ai_auto_reply(client: Client, message: Message):
-    if message.from_user and message.from_user.is_bot:
-        return
+async def chatbot_text(client: Client, message: Message):
+    try:
+        if (
+            message.text.startswith("!")
+            or message.text.startswith("/")
+            or message.text.startswith("?")
+            or message.text.startswith("@")
+            or message.text.startswith("#")
+        ):
+            return
+    except Exception:
+        pass
+    chatdb = MongoClient(MONGO_URL)
+    chatai = chatdb["Word"]["WordDb"]
 
-    if not await is_chatbot_enabled(message.chat.id):
-        return
+    if not message.reply_to_message:
+        vickdb = MongoClient(MONGO_URL)
+        vick = vickdb["VickDb"]["Vick"]
+        is_vick = vick.find_one({"chat_id": message.chat.id})
+        if not is_vick:
+            await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+            K = []
+            is_chat = chatai.find({"word": message.text})
+            k = chatai.find_one({"word": message.text})
+            if k:
+                for x in is_chat:
+                    K.append(x["text"])
+                hey = random.choice(K)
+                is_text = chatai.find_one({"text": hey})
+                Yo = is_text["check"]
+                if Yo == "sticker":
+                    await message.reply_sticker(f"{hey}")
+                if not Yo == "sticker":
+                    await message.reply_text(f"{hey}")
 
-    reply = await get_ai_response(message.text)
-    if reply:
-        await message.reply_text(reply)
+    if message.reply_to_message:
+        vickdb = MongoClient(MONGO_URL)
+        vick = vickdb["VickDb"]["Vick"]
+        is_vick = vick.find_one({"chat_id": message.chat.id})
+        if message.reply_to_message.from_user.id == client.id:
+            if not is_vick:
+                await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+                K = []
+                is_chat = chatai.find({"word": message.text})
+                k = chatai.find_one({"word": message.text})
+                if k:
+                    for x in is_chat:
+                        K.append(x["text"])
+                    hey = random.choice(K)
+                    is_text = chatai.find_one({"text": hey})
+                    Yo = is_text["check"]
+                    if Yo == "sticker":
+                        await message.reply_sticker(f"{hey}")
+                    if not Yo == "sticker":
+                        await message.reply_text(f"{hey}")
+        if not message.reply_to_message.from_user.id == client.id:
+            if message.sticker:
+                is_chat = chatai.find_one(
+                    {
+                        "word": message.reply_to_message.text,
+                        "id": message.sticker.file_unique_id,
+                    }
+                )
+                if not is_chat:
+                    chatai.insert_one(
+                        {
+                            "word": message.reply_to_message.text,
+                            "text": message.sticker.file_id,
+                            "check": "sticker",
+                            "id": message.sticker.file_unique_id,
+                        }
+                    )
+            if message.text:
+                is_chat = chatai.find_one(
+                    {"word": message.reply_to_message.text, "text": message.text}
+                )
+                if not is_chat:
+                    chatai.insert_one(
+                        {
+                            "word": message.reply_to_message.text,
+                            "text": message.text,
+                            "check": "none",
+                        }
+                    )
 
 
-async def get_ai_response(user_text: str) -> str:
-    """
-    🔌 Apna AI provider (OpenAI / Gemini / etc) yahan plug karo.
-    Abhi ke liye ye placeholder hai.
-    """
-    return "🤖 (AI response yahan aayega — apna AI API call is function mein add karo)"
+@AMBOT.on_message(
+    (filters.sticker | filters.group | filters.text) & ~filters.private & ~filters.bot,
+)
+async def chatbot_sticker(client: Client, message: Message):
+    try:
+        if (
+            message.text.startswith("!")
+            or message.text.startswith("/")
+            or message.text.startswith("?")
+            or message.text.startswith("@")
+            or message.text.startswith("#")
+        ):
+            return
+    except Exception:
+        pass
+    chatdb = MongoClient(MONGO_URL)
+    chatai = chatdb["Word"]["WordDb"]
+
+    if not message.reply_to_message:
+        vickdb = MongoClient(MONGO_URL)
+        vick = vickdb["VickDb"]["Vick"]
+        is_vick = vick.find_one({"chat_id": message.chat.id})
+        if not is_vick:
+            await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+            K = []
+            is_chat = chatai.find({"word": message.sticker.file_unique_id})
+            k = chatai.find_one({"word": message.text})
+            if k:
+                for x in is_chat:
+                    K.append(x["text"])
+                hey = random.choice(K)
+                is_text = chatai.find_one({"text": hey})
+                Yo = is_text["check"]
+                if Yo == "text":
+                    await message.reply_text(f"{hey}")
+                if not Yo == "text":
+                    await message.reply_sticker(f"{hey}")
+
+    if message.reply_to_message:
+        vickdb = MongoClient(MONGO_URL)
+        vick = vickdb["VickDb"]["Vick"]
+        is_vick = vick.find_one({"chat_id": message.chat.id})
+        if message.reply_to_message.from_user.id == Client.id:
+            if not is_vick:
+                await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+                K = []
+                is_chat = chatai.find({"word": message.text})
+                k = chatai.find_one({"word": message.text})
+                if k:
+                    for x in is_chat:
+                        K.append(x["text"])
+                    hey = random.choice(K)
+                    is_text = chatai.find_one({"text": hey})
+                    Yo = is_text["check"]
+                    if Yo == "text":
+                        await message.reply_text(f"{hey}")
+                    if not Yo == "text":
+                        await message.reply_sticker(f"{hey}")
+        if not message.reply_to_message.from_user.id == Client.id:
+            if message.text:
+                is_chat = chatai.find_one(
+                    {
+                        "word": message.reply_to_message.sticker.file_unique_id,
+                        "text": message.text,
+                    }
+                )
+                if not is_chat:
+                    toggle.insert_one(
+                        {
+                            "word": message.reply_to_message.sticker.file_unique_id,
+                            "text": message.text,
+                            "check": "text",
+                        }
+                    )
+            if message.sticker:
+                is_chat = chatai.find_one(
+                    {
+                        "word": message.reply_to_message.sticker.file_unique_id,
+                        "text": message.sticker.file_id,
+                    }
+                )
+                if not is_chat:
+                    chatai.insert_one(
+                        {
+                            "word": message.reply_to_message.sticker.file_unique_id,
+                            "text": message.sticker.file_id,
+                            "check": "none",
+                        }
+                    )
+
+
+@AMBOT.on_message(
+    (filters.text | filters.sticker | filters.group) & ~filters.private & ~filters.bot,
+)
+async def chatbot_pvt(client: Client, message: Message):
+    try:
+        if (
+            message.text.startswith("!")
+            or message.text.startswith("/")
+            or message.text.startswith("?")
+            or message.text.startswith("@")
+            or message.text.startswith("#")
+        ):
+            return
+    except Exception:
+        pass
+    chatdb = MongoClient(MONGO_URL)
+    chatai = chatdb["Word"]["WordDb"]
+    if not message.reply_to_message:
+        await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+        K = []
+        is_chat = chatai.find({"word": message.text})
+        for x in is_chat:
+            K.append(x["text"])
+        hey = random.choice(K)
+        is_text = chatai.find_one({"text": hey})
+        Yo = is_text["check"]
+        if Yo == "sticker":
+            await message.reply_sticker(f"{hey}")
+        if not Yo == "sticker":
+            await message.reply_text(f"{hey}")
+    if message.reply_to_message:
+        if message.reply_to_message.from_user.id == client.id:
+            await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+            K = []
+            is_chat = chatai.find({"word": message.text})
+            for x in is_chat:
+                K.append(x["text"])
+            hey = random.choice(K)
+            is_text = chatai.find_one({"text": hey})
+            Yo = is_text["check"]
+            if Yo == "sticker":
+                await message.reply_sticker(f"{hey}")
+            if not Yo == "sticker":
+                await message.reply_text(f"{hey}")
+
+
+@AMBOT.on_message(
+    (filters.sticker | filters.sticker | filters.group)
+    & ~filters.private
+    & ~filters.bot,
+)
+async def chatbot_sticker_pvt(client: Client, message: Message):
+    try:
+        if (
+            message.text.startswith("!")
+            or message.text.startswith("/")
+            or message.text.startswith("?")
+            or message.text.startswith("@")
+            or message.text.startswith("#")
+        ):
+            return
+    except Exception:
+        pass
+    chatdb = MongoClient(MONGO_URL)
+    chatai = chatdb["Word"]["WordDb"]
+    if not message.reply_to_message:
+        await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+        K = []
+        is_chat = chatai.find({"word": message.sticker.file_unique_id})
+        for x in is_chat:
+            K.append(x["text"])
+        hey = random.choice(K)
+        is_text = chatai.find_one({"text": hey})
+        Yo = is_text["check"]
+        if Yo == "text":
+            await message.reply_text(f"{hey}")
+        if not Yo == "text":
+            await message.reply_sticker(f"{hey}")
+    if message.reply_to_message:
+        if message.reply_to_message.from_user.id == client.id:
+            await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+            K = []
+            is_chat = chatai.find({"word": message.sticker.file_unique_id})
+            for x in is_chat:
+                K.append(x["text"])
+            hey = random.choice(K)
+            is_text = chatai.find_one({"text": hey})
+            Yo = is_text["check"]
+            if Yo == "text":
+                await message.reply_text(f"{hey}")
+            if not Yo == "text":
+                await message.reply_sticker(f"{hey}")
