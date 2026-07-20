@@ -9,15 +9,40 @@ API_HASH = getenv("API_HASH", None)
 BOT_TOKEN = getenv("BOT_TOKEN", None)
 OWNER_ID = int(getenv("OWNER_ID", None))
 MONGO_URL = getenv("MONGO_URL", None)
-AUTH_CHANNEL = int(getenv("AUTH_CHANNEL", None))
-FSUB = getenv("FSUB", False)
-OWNER_ID = int(getenv("OWNER_ID", None))
-OWNER = 7663073502
-LOGGER_GROUP_ID = -1003717441313
-BOT_NAME = os.environ.get("BOT_NAME","𝐄𝐕𝐀❣")
+
+_auth_channel = getenv("AUTH_CHANNEL")
+AUTH_CHANNEL = int(_auth_channel) if _auth_channel else None
+FSUB = getenv("FSUB", "false").lower() == "true"
+
+# NOTE: previously these were hardcoded to the original template author's
+# Telegram ID / private group, which silently gave THEM /eval & /sh (remote
+# code execution) access on every forked deployment, and sent every
+# "user started bot" / "bot added to group" log to THEIR private chat.
+# Both now come from your own env vars instead.
+OWNER = OWNER_ID
+LOGGER_GROUP_ID = int(getenv("LOGGER_GROUP_ID", OWNER_ID))
+BOT_NAME = os.environ.get("BOT_NAME", "𝗡𝗼𝘃𝗮 𝗔𝗜 ⚡")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "Evachatrobot")
 SUPPORT_GROUP = os.environ.get("SUPPORT_GROUP", "evagroupp")
 UPDATES_CHANNEL = os.environ.get("UPDATES_CHANNEL", "evasupportt")
+
+# ── AI (Groq) settings ────────────────────────────────────────────────
+# Groq is used because it is currently the fastest LLM inference API
+# available, which keeps chat replies near-instant.
+# Get a free key at: https://console.groq.com/keys
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+AI_ENABLED_BY_DEFAULT = os.environ.get("AI_ENABLED_BY_DEFAULT", "true").lower() == "true"
+
+# Personality the AI replies with. Feel free to edit this to change the bot's tone.
+AI_PERSONA = os.environ.get(
+    "AI_PERSONA",
+    f"You are {BOT_NAME}, a friendly, witty, upbeat Telegram chat companion. "
+    "Reply in a warm, casual, slightly playful tone. Keep replies short "
+    "(1-3 sentences) unless the user clearly wants a detailed answer. "
+    "Mirror the user's language (Hindi/Hinglish/English) naturally. "
+    "Never claim to be human, never generate harmful content."
+)
 
 STICKER = [
 "CAACAgUAAxkBAAKV2Ge_HEejUGb8foZZ9eunAivt46rNAAL9EQAC-EXwV3yNmpSjijuwHgQ",
