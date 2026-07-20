@@ -10,3 +10,4 @@ chatsdb = db["chats"]    # Chats Collection
 # Import functions for use in other parts of the application
 from .chats import *
 from .fsub import *
+from .settings import *
