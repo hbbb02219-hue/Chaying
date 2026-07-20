@@ -1,6 +1,6 @@
 from pyrogram.types import InlineKeyboardButton
 
-from config import BOT_USERNAME, OWNER_ID, SUPPORT_GROUP
+from config import BOT_USERNAME, OWNER_ID, SUPPORT_GROUP, UPDATES_CHANNEL
 
 
 STBUTTON = [
@@ -27,8 +27,8 @@ STBUTTON = [
 
 ABOUT_BUTTON = [
     [
-        InlineKeyboardButton("⌯ 𝛅ᴜᴘᴘσʀᴛ ⌯", url="https://t.me/evasupportt"),
-        InlineKeyboardButton("⌯ ᴜᴘᴅᴧᴛє ˼⌯", url="https://t.me/evasupportt")
+        InlineKeyboardButton("⌯ 𝛅ᴜᴘᴘσʀᴛ ⌯", url=f"https://t.me/{SUPPORT_GROUP}"),
+        InlineKeyboardButton("⌯ ᴜᴘᴅᴧᴛє ˼⌯", url=f"https://t.me/{UPDATES_CHANNEL}")
     ],
     [
         InlineKeyboardButton("⌯ ʙᴧᴄᴋ ⌯", callback_data=f"HELP_BACK")
