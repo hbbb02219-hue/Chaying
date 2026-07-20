@@ -3,7 +3,6 @@ motor
 requests
 dnspython
 tgcrypto
-asyncio
 python-dotenv
 aiohttp
 cloudscraper
