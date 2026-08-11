@@ -21,7 +21,7 @@ FSUB = getenv("FSUB", "false").lower() == "true"
 # Both now come from your own env vars instead.
 OWNER = OWNER_ID
 LOGGER_GROUP_ID = int(getenv("LOGGER_GROUP_ID", OWNER_ID))
-BOT_NAME = os.environ.get("BOT_NAME", "𝗡𝗼𝘃𝗮 𝗔𝗜 ⚡")
+BOT_NAME = os.environ.get("BOT_NAME", "eva ai⚡")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "Evachatrobot")
 SUPPORT_GROUP = os.environ.get("SUPPORT_GROUP", "evagroupp")
 UPDATES_CHANNEL = os.environ.get("UPDATES_CHANNEL", "evasupportt")
